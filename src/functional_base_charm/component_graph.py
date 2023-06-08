@@ -1,20 +1,24 @@
 from __future__ import annotations  # To enable type hinting a method in a class with its own class
 from typing import Iterable, List, Optional
 
+from ops import StatusBase
+
 from .component import Component
 from .component_graph_item import ComponentGraphItem
+from .multistatus import Prioritiser
 
 
 class ComponentGraph:
     def __init__(self):
         self.component_items = {}
+        self.status_prioritiser = Prioritiser()
 
     def add(
         self,
         component: Component,
         name: str,
         depends_on: Optional[List[ComponentGraphItem]] = None,
-    ):
+    ) -> ComponentGraphItem:
         """Add a component to the graph, returning a ComponentGraphItem for this Component."""
         # TODO: It feels easier to pass Component's in `depends_on`, but then harder for us to
         #  process them here (we identify components by their name).
@@ -28,6 +32,8 @@ class ComponentGraph:
         self.component_items[name] = ComponentGraphItem(
             component=component, name=name, depends_on=depends_on
         )
+
+        self.status_prioritiser.add(name, lambda: self.component_items[name].status)
 
         return self.component_items[name]
 
@@ -48,6 +54,11 @@ class ComponentGraph:
     def get_by_name(self, name: str):
         """Returns a component, accessed by name."""
         raise NotImplementedError()
+
+    @property
+    def status(self) -> StatusBase:
+        """Returns the worst status of all ComponentItems in the collection."""
+        return self.status_prioritiser.highest()
 
     def summarise(self):
         """Placeholder - definitely need something to help writing/debugging

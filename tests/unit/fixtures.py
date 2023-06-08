@@ -1,5 +1,5 @@
 import pytest
-from ops import ActiveStatus, StatusBase, WaitingStatus
+from ops import ActiveStatus, StatusBase, WaitingStatus, BlockedStatus
 
 from functional_base_charm.component import Component
 from functional_base_charm.component_graph_item import ComponentGraphItem
@@ -34,6 +34,17 @@ class MinimallyExtendedComponent(Component):
     def _configure_unit(self, event):
         """Fake doing some work."""
         self._completed_work = "some work"
+
+
+class MinimallyBlockedComponent(MinimallyExtendedComponent):
+    """A minimal Component that defaults to being Blocked."""
+    @property
+    def status(self) -> StatusBase:
+        """Returns ActiveStatus if self._completed_work is not Falsey, else WaitingStatus."""
+        if not self._completed_work:
+            return BlockedStatus("Waiting for execution")
+
+        return ActiveStatus()
 
 
 @pytest.fixture()

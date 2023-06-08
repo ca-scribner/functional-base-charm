@@ -1,8 +1,9 @@
 import pytest
+from ops import UnknownStatus, BlockedStatus
 
 from functional_base_charm.component_graph import ComponentGraph
 from functional_base_charm.component_graph_item import ComponentGraphItem
-from tests.unit.fixtures import MinimallyExtendedComponent
+from tests.unit.fixtures import MinimallyExtendedComponent, MinimallyBlockedComponent
 
 
 class TestAdd:
@@ -86,6 +87,42 @@ class TestGetExecutableComponentItems:
         executable_cgis = cg.get_executable_component_items()
         assert len(executable_cgis) == 2
 
+
+class TestStatus:
+
+    def test_no_items(self):
+        """Tests that the Status of an empty ComponentGraph is UnknownStatus."""
+        cg = ComponentGraph()
+        assert isinstance(cg.status, UnknownStatus)
+
+    def test_with_items(self):
+        """Tests that the Status of a ComponentGraph with items is returned correctly."""
+        cg = ComponentGraph()
+
+        # Add a Component that is Active
+        cgi_active = cg.add(
+            component=MinimallyExtendedComponent(),
+            name="cgi-active",
+        )
+        # "execute" it to make it active
+        cgi_active.executed = True
+        cgi_active.component.configure_charm("mock event")
+
+        # Add a Component that is Blocked
+        cgi_blocked = cg.add(
+            component=MinimallyBlockedComponent(),
+            name="cgi-blocked",
+        )
+        cgi_blocked.executed = True
+
+        # Add a Component that is Waiting
+        cgi_waiting = cg.add(
+            component=MinimallyExtendedComponent(),
+            name="cgi-waiting",
+        )
+        cgi_waiting.executed = True
+
+        assert isinstance(cg.status, BlockedStatus)
 
 
 class TestYieldExecutableComponentItems:
