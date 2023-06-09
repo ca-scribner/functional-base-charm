@@ -2,9 +2,15 @@
 # https://github.com/benhoyt/test-charms/blob/statustest-stateless/statustest/src/multistatus.py
 """Status prioritiser."""
 
+import logging
 import typing
+from typing import Tuple, List
 
 import ops
+from ops import Framework, Unit, EventBase
+
+
+logger = logging.getLogger(__name__)
 
 
 class Prioritiser:
@@ -38,7 +44,18 @@ class Prioritiser:
             return ops.ActiveStatus()
         return ops.StatusBase.from_name(status.name, f"[{component}] {status.message}")
 
-    def all(self) -> list[tuple[str, ops.StatusBase]]:
+    def install(self, framework: Framework, unit: Unit):
+        def update_unit_status(event: EventBase):
+            logger.info("Executing Prioritizer.update_unit_status")
+            unit.status = self.highest()
+
+        framework.observe(framework.on.commit, update_unit_status)
+
+    def _on_commit(self, event):
+        self.unit.status = self.prioritiser.highest()
+
+
+    def all(self) -> List[Tuple[str, ops.StatusBase]]:
         """Return list of (component_name, status) tuples for all components.
 
         The list is ordered highest-priority first. If there are two statuses
