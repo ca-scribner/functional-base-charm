@@ -206,3 +206,31 @@ class TestYieldExecutableComponentItems:
         # And now the generator should be empty
         with pytest.raises(StopIteration):
             next(cgi_generator)
+
+
+class TestEventsToObserve:
+
+    def test_if_empty(self):
+        cg = ComponentGraph()
+        assert len(cg.get_events_to_observe()) == 0
+
+    def test_with_events_to_observe(self):
+        cg = ComponentGraph()
+        component1 = MinimallyExtendedComponent()
+        events1 = ["event1", "event1b"]
+        component1._events_to_observe = events1
+        cg.add(
+            component=component1,
+            name="test1"
+        )
+
+        component2 = MinimallyExtendedComponent()
+        events2 = ["event2"]
+        component2._events_to_observe = events2
+        cg.add(
+            component=component2,
+            name="test2"
+        )
+
+        expected_events = events1 + events2
+        assert cg.get_events_to_observe() == expected_events
