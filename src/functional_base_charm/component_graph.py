@@ -10,7 +10,7 @@ from .multistatus import Prioritiser
 
 class ComponentGraph:
     def __init__(self):
-        self.component_items = {}
+        self.component_items: dict[str, ComponentGraphItem] = {}
         self.status_prioritiser = Prioritiser()
 
     def add(
