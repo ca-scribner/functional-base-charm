@@ -28,6 +28,7 @@ class Component(ABC):
         self._configure_app_leader(event)
         self._configure_app_non_leader(event)
 
+    @property
     def ready(self) -> bool:
         """Returns boolean indicating if Component is ready (Active)."""
         return isinstance(self.status, ActiveStatus)
