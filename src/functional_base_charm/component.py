@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
+from typing import List
 
-from ops import ActiveStatus, StatusBase
+from ops import ActiveStatus, StatusBase, BoundEvent
 
 
 class Component(ABC):
+
+    def __init__(self):
+        self._events_to_observe: List[BoundEvent] = []
 
     # Methods that can be used directly from the Component class for most cases
     def configure_charm(self, event):
@@ -36,6 +40,10 @@ class Component(ABC):
         be executed.  For example, a PebbleContainer can check wither the container is ready.
         """
         return True
+
+    @property
+    def events_to_observe(self):
+        return self._events_to_observe
 
     # Methods that should be overridden when creating a Component subclass
     @abstractmethod

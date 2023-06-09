@@ -21,6 +21,11 @@ class ComponentGraphItem:
         self._executed: bool = False
 
     @property
+    def events_to_observe(self) -> List[str]:
+        """Returns a list of the names of extra events that this Component should observe."""
+        return self.component.events_to_observe
+
+    @property
     def executed(self) -> bool:
         """Returns whether this Component has already been executed."""
         return self._executed

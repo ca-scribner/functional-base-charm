@@ -37,6 +37,13 @@ class ComponentGraph:
 
         return self.component_items[name]
 
+    def get_events_to_observe(self) -> List[str]:
+        """Returns a list of the names of all extra events these Components should observe."""
+        to_observe = []
+        for component_item in self.component_items.values():
+            to_observe.extend(component_item.events_to_observe)
+        return to_observe
+
     def get_executable_component_items(self) -> List[ComponentGraphItem]:
         """Returns a list of ComponentGraphItems ready for execution."""
         return [item for item in self.component_items.values() if item.ready_for_execution]
