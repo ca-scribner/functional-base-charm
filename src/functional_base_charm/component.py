@@ -28,6 +28,15 @@ class Component(ABC):
         """Returns boolean indicating if Component is ready (Active)."""
         return isinstance(self.status, ActiveStatus)
 
+    @property
+    def ready_for_execution(self) -> bool:
+        """Returns boolean indicating if Component is ready for execution.
+
+        Extend this method with custom logic if this Component has validation to run before it can
+        be executed.  For example, a PebbleContainer can check wither the container is ready.
+        """
+        return True
+
     # Methods that should be overridden when creating a Component subclass
     @abstractmethod
     def _configure_unit(self, event):
