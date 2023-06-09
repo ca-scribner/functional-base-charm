@@ -5,9 +5,13 @@ from ops import ActiveStatus, StatusBase, BoundEvent
 
 
 class Component(ABC):
+    """Abstract class defining the API needed for an atomic piece of work that a charm does.
 
+    This is intended to be extended for different types of operations, such as managing Pebble
+    containers or relation libraries.
+    """
     def __init__(self):
-        self._events_to_observe: List[BoundEvent] = []
+        self._events_to_observe: List[str] = []
 
     # Methods that can be used directly from the Component class for most cases
     def configure_charm(self, event):
@@ -43,13 +47,17 @@ class Component(ABC):
         return True
 
     @property
-    def events_to_observe(self):
+    def events_to_observe(self) -> List[str]:
+        """Returns the list of events this Component wants to observe, by name.
+
+        TODO: Would this be better returning actual BoundEvents instead of their names?
+        """
         return self._events_to_observe
 
     # Methods that should be overridden when creating a Component subclass
     @abstractmethod
     def _configure_unit(self, event):
-        """
+        """Executes everything this Component should do for every Unit.
 
         Override this method to implement anything this Component should do for
         every unit in the charm.
@@ -57,8 +65,7 @@ class Component(ABC):
 
     @abstractmethod
     def _configure_app_leader(self, event):
-        """Execute everything this Component should do at the Application level for
-        Leaders.
+        """Execute everything this Component should do at the Application level for leaders.
 
         Override this method to implement anything this Component should do for
         the leader unit.
@@ -66,8 +73,7 @@ class Component(ABC):
 
     @abstractmethod
     def _configure_app_non_leader(self, event):
-        """Execute everything this Component should do at the Application level for
-        non-Leaders.
+        """Execute everything this Component should do at the Application level for non-Leaders.
 
         Override this method to implement anything this Component should do for
         every unit that is not the leader.

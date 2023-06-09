@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class PebbleComponent(Component):
-
+    """Wraps a non-service Pebble container."""
     def __init__(self, *args, charm: CharmBase, container_name: str, **kwargs):
         super().__init__(*args, **kwargs)
         self._charm = charm
@@ -59,7 +59,7 @@ class PebbleComponent(Component):
 
 
 class PebbleServiceComponent(PebbleComponent):
-
+    """Wraps a Pebble container that implements one or more services."""
     def __init__(self, *args, service_name: str, **kwargs):
         super().__init__(*args, **kwargs)
         self.service_name = service_name
@@ -100,6 +100,10 @@ class PebbleServiceComponent(PebbleComponent):
 
     @property
     def status(self) -> StatusBase:
+        """Returns the status of this Pebble service container.
+
+        Status is determined by checking whether the container and service are up.
+        """
         # TODO: Report on checks in the Status?
         if not self.pebble_ready:
             return WaitingStatus("Waiting for Pebble to be ready.")

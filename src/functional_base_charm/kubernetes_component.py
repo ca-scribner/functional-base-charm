@@ -24,6 +24,7 @@ class KubernetesComponent(Component):
         self._context_callable = context_callable
 
     def _configure_unit(self, event):
+        # no per-unit actions needed
         pass
 
     def _configure_app_leader(self, event):
@@ -35,6 +36,7 @@ class KubernetesComponent(Component):
             raise GenericCharmRuntimeError("Failed to create Kubernetes resources") from e
 
     def _configure_app_non_leader(self, event):
+        # no non-leader application actions needed
         pass
 
     def _get_kubernetes_resource_handler(self) -> KubernetesResourceHandler:
@@ -51,6 +53,11 @@ class KubernetesComponent(Component):
 
     @property
     def status(self) -> StatusBase:
+        """Returns the status of this Component based on whether its desired resources exist.
+
+        Todo: This could use improvements on validation, and some of the logic could be moved into
+        the KubernetesResourceHandler class.
+        """
         # TODO: Add better validation
         krh = self._get_kubernetes_resource_handler()
 
