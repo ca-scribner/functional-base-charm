@@ -3,7 +3,7 @@ from ops import UnknownStatus, BlockedStatus
 
 from functional_base_charm.component_graph import ComponentGraph
 from functional_base_charm.component_graph_item import ComponentGraphItem
-from tests.unit.fixtures import MinimallyExtendedComponent, MinimallyBlockedComponent
+from fixtures import MinimallyExtendedComponent, MinimallyBlockedComponent
 
 
 class TestAdd:
