@@ -1,16 +1,31 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ops import ActiveStatus, StatusBase, BoundEvent
+from ops import ActiveStatus, CharmBase, Object, StatusBase
 
 
-class Component(ABC):
+class Component(Object, ABC):
     """Abstract class defining the API needed for an atomic piece of work that a charm does.
 
     This is intended to be extended for different types of operations, such as managing Pebble
     containers or relation libraries.
     """
-    def __init__(self):
+    def __init__(self, charm: CharmBase, name: str):
+        """Instantiate a Component.
+
+        Args:
+            charm: (from ops.Object's `framework` parameter) Charm that will be the parent of the
+                   Charm framework events related to this Component.
+                   Note that this can also accept a Framework object, although this is probably
+                   useful only in unit tests.
+            name: Unique name of this instance of the class.  This is used as the ops.Object key
+                  argument, as well as for some status/debug printing.
+        """
+        super().__init__(
+            parent=charm,
+            key=name
+        )
+        self.name = name  # Will be the same as self.handle.key
         self._events_to_observe: List[str] = []
 
     # Methods that can be used directly from the Component class for most cases

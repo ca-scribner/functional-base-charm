@@ -3,24 +3,24 @@ from unittest.mock import patch
 
 from ops import ActiveStatus, WaitingStatus
 
-from fixtures import MinimallyExtendedComponent
+from fixtures import MinimallyExtendedComponent, harness
 
 
 class TestMinimallyExtendedComponent:
 
-    def test_status_before_execution(self):
+    def test_status_before_execution(self, harness):
         """Tests that the minimal implementation of Component does not raise a syntax error."""
-        component = MinimallyExtendedComponent()
+        component = MinimallyExtendedComponent(charm=harness.framework, name="test-component")
         assert isinstance(component.status, WaitingStatus)
 
-    def test_status_after_execution(self):
+    def test_status_after_execution(self, harness):
         """Tests that the minimal implementation of Component does not raise a syntax error."""
-        component = MinimallyExtendedComponent()
+        component = MinimallyExtendedComponent(charm=harness.framework, name="test-component")
         component.configure_charm("mock event")
         assert isinstance(component.status, ActiveStatus)
 
-    def test_configure_charm(self):
-        component = MinimallyExtendedComponent()
+    def test_configure_charm(self, harness):
+        component = MinimallyExtendedComponent(charm=harness.framework, name="test-component")
 
         with (
                 patch.object(component, "_configure_app_leader", wraps=component._configure_app_leader) as spied_configure_app_leader,

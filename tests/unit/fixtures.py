@@ -1,5 +1,6 @@
 import pytest
-from ops import ActiveStatus, StatusBase, WaitingStatus, BlockedStatus
+from ops import ActiveStatus, StatusBase, WaitingStatus, BlockedStatus, CharmBase
+from ops.testing import Harness
 
 from functional_base_charm.component import Component
 from functional_base_charm.component_graph_item import ComponentGraphItem
@@ -112,3 +113,28 @@ def component_graph_item_with_depends_active_factory(component_graph_item_active
             depends_on=[component_graph_item_active_factory()]
         )
     return factory
+
+
+class DummyCharm(CharmBase):
+    pass
+
+
+@pytest.fixture()
+def harness():
+    harness = Harness(DummyCharm, meta="")
+    harness.begin()
+    return harness
+
+
+METADATA_WITH_CONTAINER = """
+name: test-charm
+containers:
+  test-container:
+"""
+
+
+@pytest.fixture()
+def harness_with_container():
+    harness = Harness(DummyCharm, meta=METADATA_WITH_CONTAINER)
+    harness.begin()
+    return harness
