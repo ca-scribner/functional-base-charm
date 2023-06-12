@@ -1,10 +1,11 @@
 import pytest
 from ops import ActiveStatus, StatusBase, WaitingStatus, BlockedStatus, CharmBase
+from ops.pebble import Layer
 from ops.testing import Harness
 
 from functional_base_charm.component import Component
 from functional_base_charm.component_graph_item import ComponentGraphItem
-
+from functional_base_charm.pebble_component import PebbleComponent, PebbleServiceComponent
 
 COMPONENT_NAME = "component"
 
@@ -46,6 +47,24 @@ class MinimallyBlockedComponent(MinimallyExtendedComponent):
             return BlockedStatus("Waiting for execution")
 
         return ActiveStatus()
+
+
+class MinimalPebbleComponent(PebbleComponent):
+    pass
+
+
+class MinimalPebbleServiceComponent(PebbleServiceComponent):
+    def get_layer(self) -> Layer:
+        return Layer({
+            "summary": "test-container-layer",
+            "services": {
+                self.service_name: {
+                    "override": "replace",
+                    "summary": "test-service",
+                    "startup": "enabled",
+                }
+            }
+        })
 
 
 @pytest.fixture()

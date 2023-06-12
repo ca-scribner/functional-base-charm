@@ -13,14 +13,24 @@ logger = logging.getLogger(__name__)
 
 class PebbleComponent(Component):
     """Wraps a non-service Pebble container."""
-    def __init__(self, *args, charm: CharmBase, container_name: str, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, charm: CharmBase, container_name: str):
+        """Instantiate the PebbleComponent.
+
+        Args:
+            charm:
+            container_name: Name of this container.  Note that this name is also used as the
+                            parent object's Component.name parameter.
+        """
+        super().__init__(charm=charm, name=container_name)
         self._charm = charm
-        self.container_name = container_name
+        self.container_name = self.name
+        # TODO: Should a PebbleComponent automatically be subscribed to this event?  Or just
+        #  a PebbleServiceComponent?
         self._events_to_observe: List[str] = [
             pebble_ready_event_from_container_name(self.container_name)
         ]
 
+    @property
     def ready_for_execution(self) -> bool:
         """Returns True if Pebble is ready."""
         return self.pebble_ready
@@ -50,13 +60,6 @@ class PebbleComponent(Component):
 
         return ActiveStatus()
 
-    @abstractmethod
-    def get_layer(self) -> Layer:
-        """Pebble configuration layer for the container.
-
-        Override this method with your own layer configuration.
-        """
-
 
 class PebbleServiceComponent(PebbleComponent):
     """Wraps a Pebble container that implements one or more services."""
@@ -65,12 +68,13 @@ class PebbleServiceComponent(PebbleComponent):
         self.service_name = service_name
 
     def _configure_unit(self, event):
+        # TODO: Need to call super()._configure_unit()?
         super()._configure_unit(event)
         # TODO: Checks for if we are the leader/there is a leader?  or skip that?
         # TODO: This may need refinement.  Sunbeam does it differently from us.  Why?  Maybe they
         #  dont expect to ever update and existing pebble plan?
         if not self.pebble_ready:
-            logging.info("Container {self.container_name} not ready - cannot configure unit.")
+            logging.info(f"Container {self.container_name} not ready - cannot configure unit.")
             return
 
         container = self._charm.unit.get_container(self.container_name)
@@ -82,20 +86,36 @@ class PebbleServiceComponent(PebbleComponent):
             # TODO: Add error handling here?  Not sure what will catch them yet so left out for now
             container.replan()
 
+    @abstractmethod
+    def get_layer(self) -> Layer:
+        """Pebble configuration layer for the container.
+
+        Override this method with your own layer configuration.
+        """
+
     @property
     def service_ready(self) -> bool:
         """Returns True if all services provided by this container are running."""
         if not self.pebble_ready:
             return False
-        return len(self.get_services_not_ready()) == 0
+        return len(self.get_services_not_active()) == 0
 
-    def get_services_not_ready(self) -> List[ServiceInfo]:
-        """Returns a list of Pebble services that are not ready."""
-        # TODO: This will raise an exception if pebble is not ready.  Should we catch it or let it
-        #  raise?
+    def get_services_not_active(self) -> List[ServiceInfo]:
+        """Returns a list of Pebble services that are defined in get_layer but not active."""
+        # Get the expected services by inspecting our layer specification
+        services_expected = [ServiceInfo(service_name, "disabled", "inactive") for service_name in self.get_layer().services.keys()]
+        if not self.pebble_ready:
+            return services_expected
+
         container = self._charm.unit.get_container(self.container_name)
         services = container.get_services()
-        services_not_ready = [service for service in services.values() if not service.is_running()]
+
+        # Get any services that should be active, but are not in the container at all
+        services_not_found = [service for service in services_expected if service.name not in services.keys()]
+        services_not_active = [service for service in services.values() if not service.is_running()]
+
+        services_not_ready = services_not_found + services_not_active
+
         return services_not_ready
 
     @property
@@ -107,7 +127,7 @@ class PebbleServiceComponent(PebbleComponent):
         # TODO: Report on checks in the Status?
         if not self.pebble_ready:
             return WaitingStatus("Waiting for Pebble to be ready.")
-        services_not_ready = self.get_services_not_ready()
+        services_not_ready = self.get_services_not_active()
         if len(services_not_ready) > 0:
             service_names = ", ".join([service.name for service in services_not_ready])
             return WaitingStatus(
