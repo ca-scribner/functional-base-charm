@@ -26,6 +26,7 @@ class Component(Object, ABC):
             key=name
         )
         self.name = name  # Will be the same as self.handle.key
+        self._charm = charm
         self._events_to_observe: List[str] = []
 
     # Methods that can be used directly from the Component class for most cases

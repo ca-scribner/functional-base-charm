@@ -22,7 +22,6 @@ class PebbleComponent(Component):
                             parent object's Component.name parameter.
         """
         super().__init__(charm=charm, name=container_name)
-        self._charm = charm
         self.container_name = self.name
         # TODO: Should a PebbleComponent automatically be subscribed to this event?  Or just
         #  a PebbleServiceComponent?
