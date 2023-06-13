@@ -48,7 +48,7 @@ class ComponentGraph:
         """Returns a list of ComponentGraphItems ready for execution."""
         return [item for item in self.component_items.values() if item.ready_for_execution]
 
-    def yield_executable_component_items(self) -> Iterable[Component]:
+    def yield_executable_component_items(self) -> Iterable[ComponentGraphItem]:
         """Yields all executable components, marking them as executed as they're yielded.
 
         Will only yield Components after all their depends_on Components are ready.
