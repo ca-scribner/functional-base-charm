@@ -45,6 +45,9 @@ class Prioritiser:
         return ops.StatusBase.from_name(status.name, f"[{component}] {status.message}")
 
     def install(self, framework: Framework, unit: Unit):
+        # TODO: This doesn't work because framework.observe's observer parameter (the last one)
+        #  only accepts methods, not functions?  For now, use the hack of implementing this
+        #  directly in the charm main.
         def update_unit_status(event: EventBase):
             logger.info("Executing Prioritizer.update_unit_status")
             unit.status = self.highest()
