@@ -7,7 +7,7 @@ from ops import EventBase, StatusBase, CharmBase, Object
 logger = logging.getLogger(__name__)
 
 
-class CharmMain(Object):
+class CharmReconciler(Object):
 
     def __init__(self, charm: CharmBase, component_graph: ComponentGraph):
         super().__init__(parent=charm, key=None)
@@ -19,9 +19,12 @@ class CharmMain(Object):
 
         This would be the handler for charm events like config-changed, etc.
         """
+        logger.info(f"Starting `execute_components` for event '{event.handle}'")
+
         # TODO: Think this through again.  Look ok still?
         for component_item in self.component_graph.yield_executable_component_items():
-            component_item.component
+            logger.info(f"Executing component_item.component.configure_charm for '{component_item.name}'")
+
             component_item.component.configure_charm(event)
             # TODO: If this component executes but does not go to ready, is there something we
             #  should do?  Omitted for now.
@@ -30,9 +33,9 @@ class CharmMain(Object):
 
         # TODO: Because on.commit didn't work for the Prioritiser, we add a call to Prioritiser
         #  here.  This should be improved on in future.
+        logger.info(f"execute_components execution loop complete.")
         status = self.component_graph.status_prioritiser.highest()
         logger.info(f"Got status {status} from Prioritiser - updating unit status")
-
         self._charm.unit.status = status
 
     def install(self, charm: CharmBase):
