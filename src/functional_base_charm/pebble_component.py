@@ -1,7 +1,10 @@
 import logging
 from abc import abstractmethod
-from typing import List
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Union, Optional, Callable
 
+import jinja2
 from ops import CharmBase, StatusBase, WaitingStatus, ActiveStatus
 from ops.pebble import Layer, ServiceInfo
 
@@ -11,15 +14,39 @@ from functional_base_charm.component import Component
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ContainerFileTemplate:
+    source_template_path: Union[Path, str]
+    destination_path: Union[Path, str]
+    context_function: Optional[Union[Callable, dict]] = None
+    user: Optional[str] = None
+    group: Optional[str] = None
+    permissions: Optional[str] = None
+
+    def __setattr__(self, name, value):
+        """Custom setter that converts the types of some inputs."""
+        if name in ["source_template_path", "destination_path"]:
+            value = Path(value)
+        if name == "context_function":
+            if value is None:
+                value = lambda: {}
+            elif not callable(value):
+                value = lambda: value
+
+        super().__setattr__(name, value)
+
+
 class PebbleComponent(Component):
     """Wraps a non-service Pebble container."""
-    def __init__(self, charm: CharmBase, container_name: str):
+    def __init__(self, charm: CharmBase, container_name: str, files_to_push: Optional[List[ContainerFileTemplate]] = None):
         """Instantiate the PebbleComponent.
 
         Args:
             charm:
             container_name: Name of this container.  Note that this name is also used as the
                             parent object's Component.name parameter.
+            files_to_push: Optional List of ContainerFile objects that define templates to be
+                           rendered and pushed into the container as files
         """
         super().__init__(charm=charm, name=container_name)
         self.container_name = self.name
@@ -28,6 +55,7 @@ class PebbleComponent(Component):
         self._events_to_observe: List[str] = [
             get_pebble_ready_event_from_charm(self._charm, self.container_name)
         ]
+        self._files_to_push = files_to_push or []
 
     @property
     def ready_for_execution(self) -> bool:
@@ -51,6 +79,22 @@ class PebbleComponent(Component):
 
     def _configure_app_non_leader(self, event):
         pass
+
+    def _push_files_to_container(self):
+        """Renders and pushes the files defined in self._files_to_push into the container."""
+        container = self._charm.unit.get_container(self.container_name)
+        for container_file_template in self._files_to_push:
+            template = jinja2.Template(container_file_template.source_template_path.read_text())
+            rendered = template.render(**container_file_template.context_function())
+            container.push(
+                path=container_file_template.destination_path,
+                source=rendered,
+                user=container_file_template.user,
+                group=container_file_template.group,
+                permissions=container_file_template.permissions,
+                make_dirs=True
+            )
+
 
     @property
     def status(self) -> StatusBase:
@@ -76,6 +120,11 @@ class PebbleServiceComponent(PebbleComponent):
             logging.info(f"Container {self.container_name} not ready - cannot configure unit.")
             return
 
+        # TODO: Detect file changes and trigger a replan on any file change too?
+        self._push_files_to_container()
+        self._update_layer()
+
+    def _update_layer(self):
         container = self._charm.unit.get_container(self.container_name)
         new_layer = self.get_layer()
 
