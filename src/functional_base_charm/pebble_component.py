@@ -26,7 +26,7 @@ class PebbleComponent(Component):
         # TODO: Should a PebbleComponent automatically be subscribed to this event?  Or just
         #  a PebbleServiceComponent?
         self._events_to_observe: List[str] = [
-            pebble_ready_event_from_container_name(self.container_name)
+            get_pebble_ready_event_from_charm(self._charm, self.container_name)
         ]
 
     @property
@@ -135,7 +135,8 @@ class PebbleServiceComponent(PebbleComponent):
         return ActiveStatus()
 
 
-def pebble_ready_event_from_container_name(container_name: str) -> str:
-    """Returns the name of a pebble-ready event for a given container_name."""
+def get_pebble_ready_event_from_charm(charm: CharmBase, container_name: str) -> str:
+    """Returns the pebble-ready event for a given container_name."""
     prefix = container_name.replace("-", "_")
-    return f"{prefix}_pebble_ready"
+    event_name = f"{prefix}_pebble_ready"
+    return getattr(charm.on, event_name)

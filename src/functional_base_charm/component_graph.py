@@ -1,7 +1,7 @@
 from __future__ import annotations  # To enable type hinting a method in a class with its own class
 from typing import Iterable, List, Optional
 
-from ops import StatusBase
+from ops import StatusBase, BoundEvent
 
 from .component import Component
 from .component_graph_item import ComponentGraphItem
@@ -37,8 +37,8 @@ class ComponentGraph:
 
         return self.component_items[name]
 
-    def get_events_to_observe(self) -> List[str]:
-        """Returns a list of the names of all extra events these Components should observe."""
+    def get_events_to_observe(self) -> List[BoundEvent]:
+        """Returns a list of the extra events these Components should observe."""
         to_observe = []
         for component_item in self.component_items.values():
             to_observe.extend(component_item.events_to_observe)

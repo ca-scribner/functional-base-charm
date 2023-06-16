@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ops import ActiveStatus, CharmBase, Object, StatusBase
+from ops import ActiveStatus, CharmBase, Object, StatusBase, BoundEvent
 
 
 class Component(Object, ABC):
@@ -27,7 +27,7 @@ class Component(Object, ABC):
         )
         self.name = name  # Will be the same as self.handle.key
         self._charm = charm
-        self._events_to_observe: List[str] = []
+        self._events_to_observe: List[BoundEvent] = []
 
     # Methods that can be used directly from the Component class for most cases
     def configure_charm(self, event):
@@ -63,8 +63,8 @@ class Component(Object, ABC):
         return True
 
     @property
-    def events_to_observe(self) -> List[str]:
-        """Returns the list of events this Component wants to observe, by name.
+    def events_to_observe(self) -> List[BoundEvent]:
+        """Returns the list of events this Component wants to observe.
 
         TODO: Would this be better returning actual BoundEvents instead of their names?
         """
