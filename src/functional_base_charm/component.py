@@ -39,15 +39,6 @@ class Component(Object, ABC):
         self._configure_unit(event)
         self._configure_app(event)
 
-    def _configure_app(self, event):
-        """Execute everything this Component should do at the Application level.
-
-        Generally should be reusable for most use cases.  Ideally, override
-        _configure_app_leader and _configure_app_non_leader instead.
-        """
-        self._configure_app_leader(event)
-        self._configure_app_non_leader(event)
-
     @property
     def ready(self) -> bool:
         """Returns boolean indicating if Component is ready (Active)."""
@@ -69,6 +60,15 @@ class Component(Object, ABC):
         TODO: Would this be better returning actual BoundEvents instead of their names?
         """
         return self._events_to_observe
+
+    def _configure_app(self, event):
+        """Execute everything this Component should do at the Application level.
+
+        Generally should be reusable for most use cases.  Ideally, override
+        _configure_app_leader and _configure_app_non_leader instead.
+        """
+        self._configure_app_leader(event)
+        self._configure_app_non_leader(event)
 
     # Methods that should be overridden when creating a Component subclass
     @abstractmethod
