@@ -51,8 +51,8 @@ class CharmReconciler(Object):
 
         # Install any custom events our component_graph needs
         additional_events = self.component_graph.get_events_to_observe()
-        for event_name in additional_events:
-            charm.framework.observe(getattr(charm.on, event_name), self.execute_components)
+        for event in additional_events:
+            charm.framework.observe(event, self.execute_components)
 
         # Install our status updater
         # TODO: Does this implicitly make an update_status?
