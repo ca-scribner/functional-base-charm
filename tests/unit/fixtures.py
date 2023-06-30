@@ -70,8 +70,8 @@ class MinimalPebbleServiceComponent(PebbleServiceComponent):
 @pytest.fixture()
 def component_active_factory():
     """Returns a factory for Components that will be Active."""
-    def factory() -> Component:
-        component = MinimallyExtendedComponent()
+    def factory(harness=harness, name=COMPONENT_NAME) -> Component:
+        component = MinimallyExtendedComponent(charm=harness.framework, name=name)
         # "execute" the Component, making it now be Active because work has been done
         component.configure_charm("mock event")
         return component
@@ -79,31 +79,31 @@ def component_active_factory():
 
 
 @pytest.fixture()
-def component_inactive_factory():
+def component_inactive_factory(harness):
     """Returns a factory for Components that will not be Active."""
-    def factory() -> Component:
-        return MinimallyExtendedComponent()
+    def factory(harness=harness, name=COMPONENT_NAME) -> Component:
+        return MinimallyExtendedComponent(charm=harness.framework, name=name)
     return factory
 
 
 @pytest.fixture()
-def component_graph_item_factory():
+def component_graph_item_factory(harness):
     """Returns a factory for a ComponentGraphItem with a very minimal Component."""
-    def factory() -> ComponentGraphItem:
+    def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(),
-            name=COMPONENT_NAME,
+            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            name=name,
         )
     return factory
 
 
 @pytest.fixture()
-def component_graph_item_active_factory(component_active_factory):
+def component_graph_item_active_factory(component_active_factory, harness):
     """Returns a factory for a ComponentGraphItem with a very minimal Component that is Active."""
-    def factory() -> ComponentGraphItem:
+    def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         cgi = ComponentGraphItem(
-            component=component_active_factory(),
-            name=COMPONENT_NAME,
+            component=component_active_factory(harness=harness, name=name),
+            name=name,
         )
         cgi.executed = True
         return cgi
@@ -111,25 +111,25 @@ def component_graph_item_active_factory(component_active_factory):
 
 
 @pytest.fixture()
-def component_graph_item_with_depends_not_active_factory(component_graph_item_factory):
+def component_graph_item_with_depends_not_active_factory(component_graph_item_factory, harness):
     """Returns a factory for a ComponentGraphItem that depends on another that is not Active."""
-    def factory() -> ComponentGraphItem:
+    def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(),
-            name=COMPONENT_NAME,
-            depends_on=[component_graph_item_factory()]
+            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            name=name,
+            depends_on=[component_graph_item_factory(harness=harness, name="dependency")]
         )
     return factory
 
 
 @pytest.fixture()
-def component_graph_item_with_depends_active_factory(component_graph_item_active_factory):
+def component_graph_item_with_depends_active_factory(component_graph_item_active_factory, harness):
     """Returns a factory for a ComponentGraphItem that depends on another that is Active."""
-    def factory() -> ComponentGraphItem:
+    def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(),
-            name=COMPONENT_NAME,
-            depends_on=[component_graph_item_active_factory()]
+            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            name=name,
+            depends_on=[component_graph_item_active_factory(harness=harness, name="dependency")]
         )
     return factory
 

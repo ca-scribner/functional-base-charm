@@ -111,7 +111,7 @@ class TestPebbleServiceComponent:
 
         status = pc.status
 
-        assert isinstance(status, ActiveStatus)
+        assert isinstance(status, WaitingStatus)
         assert "Waiting for Pebble to" in pc.status.message
 
     def test_status_container_ready_service_not_active(self, harness_with_container):
@@ -121,7 +121,7 @@ class TestPebbleServiceComponent:
 
         status = pc.status
 
-        assert isinstance(status, ActiveStatus)
+        assert isinstance(status, WaitingStatus)
         assert "Waiting for Pebble services (" in pc.status.message
 
     def test_status_container_ready_service_active(self, harness_with_container):

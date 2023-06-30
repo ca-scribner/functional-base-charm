@@ -4,13 +4,14 @@ from ops import ActiveStatus, WaitingStatus, MaintenanceStatus
 from functional_base_charm.component_graph_item import ComponentGraphItem
 
 from fixtures import (  # noqa
+    COMPONENT_NAME,
     component_inactive_factory,
     component_active_factory,
     component_graph_item_factory,
     component_graph_item_active_factory,
     component_graph_item_with_depends_not_active_factory,
     component_graph_item_with_depends_active_factory,
-    COMPONENT_NAME
+    harness,
 )
 
 
@@ -18,7 +19,7 @@ class TestExecuted:
     """Tests for the .executed property."""
     def test_default(self, component_graph_item_factory):
         """Tests that the default value of executed is False."""
-        assert component_graph_item_factory().executed is False
+        assert component_graph_item_factory(name="test-charm").executed is False
 
     def test_set_to_true(self, component_graph_item_factory):
         """Tests that executed can be updated to True."""
@@ -107,9 +108,9 @@ class TestInactivePrerequisites:
             component=component_inactive_factory(),
             name=COMPONENT_NAME,
             depends_on=[
-                component_graph_item_active_factory(),
-                component_graph_item_factory(),
-                component_graph_item_factory(),
+                component_graph_item_active_factory(name="dependency1"),
+                component_graph_item_factory(name="dependency2"),
+                component_graph_item_factory(name="dependency3"),
             ]
         )
         assert len(cgi._inactive_prerequisites()) == 2
