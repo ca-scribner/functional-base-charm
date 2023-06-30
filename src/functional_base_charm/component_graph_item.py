@@ -19,11 +19,10 @@ class ComponentGraphItem:
     def __init__(
         self,
         component: Component,
-        name: str,
         depends_on: Optional[List[ComponentGraphItem]] = None,
     ):
         self.component = component
-        self.name = name
+        self.name = self.component.name
         self.depends_on = depends_on or []
         self._executed: bool = False
 

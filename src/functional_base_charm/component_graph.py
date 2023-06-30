@@ -39,7 +39,7 @@ class ComponentGraph:
         #  or is this not needed?  If everything knows its dependencies and only says it is ready
         #  if they're satisfied, that might be enough.
         self.component_items[name] = ComponentGraphItem(
-            component=component, name=name, depends_on=depends_on
+            component=component, depends_on=depends_on
         )
 
         self.status_prioritiser.add(name, lambda: self.component_items[name].status)

@@ -100,7 +100,6 @@ def component_graph_item_factory(harness):
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.charm, name=name),
-            name=name,
         )
 
     return factory
@@ -113,7 +112,6 @@ def component_graph_item_active_factory(component_active_factory, harness):
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         cgi = ComponentGraphItem(
             component=component_active_factory(harness=harness, name=name),
-            name=name,
         )
         cgi.executed = True
         return cgi
@@ -128,7 +126,6 @@ def component_graph_item_with_depends_not_active_factory(component_graph_item_fa
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.charm, name=name),
-            name=name,
             depends_on=[component_graph_item_factory(harness=harness, name="dependency")],
         )
 
@@ -142,7 +139,6 @@ def component_graph_item_with_depends_active_factory(component_graph_item_active
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.charm, name=name),
-            name=name,
             depends_on=[component_graph_item_active_factory(harness=harness, name="dependency")],
         )
 
