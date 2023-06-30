@@ -89,6 +89,11 @@ class KubernetesComponent(Component):
         Todo: This could use improvements on validation, and some of the logic could be moved into
         the KubernetesResourceHandler class.
         """
+        if not self._charm.unit.is_leader():
+            # We have no work to do, so we are always active.
+            # Ideally, there would be a "no status" option.  Maybe Unknown?
+            return ActiveStatus()
+
         # TODO: Add better validation
         missing_resources = self._get_missing_kubernetes_resources()
 
