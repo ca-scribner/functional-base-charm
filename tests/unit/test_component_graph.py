@@ -64,14 +64,14 @@ class TestGetExecutableComponentItems:
         cg = ComponentGraph()
         name = "component1"
         cgi1 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[]
+            component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[]
         )
 
         name = "component2"
-        cg.add(component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1])
+        cg.add(component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[cgi1])
 
         name = "component3"
-        cg.add(component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1])
+        cg.add(component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[cgi1])
 
         # Assert that we have one cgi ready for execution (cgi1)
         executable_cgis = cg.get_executable_component_items()
@@ -98,7 +98,7 @@ class TestStatus:
         # Add a Component that is Active
         name = "cgi-active"
         cgi_active = cg.add(
-            component=MinimallyExtendedComponent(harness, name),
+            component=MinimallyExtendedComponent(harness.charm, name),
             name=name,
         )
         # "execute" it to make it active
@@ -108,7 +108,7 @@ class TestStatus:
         # Add a Component that is Blocked
         name = "cgi-blocked"
         cgi_blocked = cg.add(
-            component=MinimallyBlockedComponent(harness, name),
+            component=MinimallyBlockedComponent(harness.charm, name),
             name=name,
         )
         cgi_blocked.executed = True
@@ -116,7 +116,7 @@ class TestStatus:
         # Add a Component that is Waiting
         name = "cgi-waiting"
         cgi_waiting = cg.add(
-            component=MinimallyExtendedComponent(harness, name),
+            component=MinimallyExtendedComponent(harness.charm, name),
             name=name,
         )
         cgi_waiting.executed = True
@@ -148,22 +148,22 @@ class TestYieldExecutableComponentItems:
         cg = ComponentGraph()
         name = "component1"
         cgi1 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[]
+            component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[]
         )
 
         name = "component2"
         cgi2 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1]
+            component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[cgi1]
         )
 
         name = "component3"
         cgi3 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1]
+            component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[cgi1]
         )
 
         name = "component4"
         cgi4 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi2, cgi3]
+            component=MinimallyExtendedComponent(harness.charm, name), name=name, depends_on=[cgi2, cgi3]
         )
 
         cgi_generator = cg.yield_executable_component_items()

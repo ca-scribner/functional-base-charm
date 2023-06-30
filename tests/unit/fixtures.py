@@ -25,12 +25,6 @@ class MinimallyExtendedComponent(Component):
         # Mock placeholder for state that indicates this Component's work is complete
         self._completed_work = None
 
-    def _configure_app_leader(self, event):
-        pass
-
-    def _configure_app_non_leader(self, event):
-        pass
-
     @property
     def status(self) -> StatusBase:
         """Returns ActiveStatus if self._completed_work is not Falsey, else WaitingStatus."""
@@ -81,7 +75,7 @@ def component_active_factory():
     """Returns a factory for Components that will be Active."""
 
     def factory(harness=harness, name=COMPONENT_NAME) -> Component:
-        component = MinimallyExtendedComponent(charm=harness.framework, name=name)
+        component = MinimallyExtendedComponent(charm=harness.charm, name=name)
         # "execute" the Component, making it now be Active because work has been done
         component.configure_charm("mock event")
         return component
@@ -94,7 +88,7 @@ def component_inactive_factory(harness):
     """Returns a factory for Components that will not be Active."""
 
     def factory(harness=harness, name=COMPONENT_NAME) -> Component:
-        return MinimallyExtendedComponent(charm=harness.framework, name=name)
+        return MinimallyExtendedComponent(charm=harness.charm, name=name)
 
     return factory
 
@@ -105,7 +99,7 @@ def component_graph_item_factory(harness):
 
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            component=MinimallyExtendedComponent(charm=harness.charm, name=name),
             name=name,
         )
 
@@ -133,7 +127,7 @@ def component_graph_item_with_depends_not_active_factory(component_graph_item_fa
 
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            component=MinimallyExtendedComponent(charm=harness.charm, name=name),
             name=name,
             depends_on=[component_graph_item_factory(harness=harness, name="dependency")],
         )
@@ -147,7 +141,7 @@ def component_graph_item_with_depends_active_factory(component_graph_item_active
 
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
-            component=MinimallyExtendedComponent(charm=harness.framework, name=name),
+            component=MinimallyExtendedComponent(charm=harness.charm, name=name),
             name=name,
             depends_on=[component_graph_item_active_factory(harness=harness, name="dependency")],
         )
