@@ -1,21 +1,37 @@
-from typing import List, Callable, Optional
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""A reusable Component for Kubernetes resources."""
+
+from typing import Callable, List, Optional
 
 import lightkube
-from lightkube.core.exceptions import ApiError
-from lightkube.generic_resource import load_in_cluster_generic_resources
-from ops import StatusBase, BlockedStatus, ActiveStatus, CharmBase
-
 from charmed_kubeflow_chisme.exceptions import GenericCharmRuntimeError
 from charmed_kubeflow_chisme.kubernetes import KubernetesResourceHandler
-from charmed_kubeflow_chisme.kubernetes._kubernetes_resource_handler import _in_left_not_right, _hash_lightkube_resource
+from charmed_kubeflow_chisme.kubernetes._kubernetes_resource_handler import (
+    _hash_lightkube_resource,
+    _in_left_not_right,
+)
 from charmed_kubeflow_chisme.types import LightkubeResourceTypesList
+from lightkube.core.exceptions import ApiError
+from lightkube.generic_resource import load_in_cluster_generic_resources
+from ops import ActiveStatus, BlockedStatus, CharmBase, StatusBase
+
 from functional_base_charm.component import Component
 
 
 class KubernetesComponent(Component):
+    """A reusable Component for Kubernetes resources."""
 
-    def __init__(self, charm: CharmBase, name: str, resource_templates: List[str], krh_child_resource_types: LightkubeResourceTypesList, krh_labels: dict, lightkube_client: lightkube.Client,
-                 context_callable: Optional[Callable] = None):
+    def __init__(
+        self,
+        charm: CharmBase,
+        name: str,
+        resource_templates: List[str],
+        krh_child_resource_types: LightkubeResourceTypesList,
+        krh_labels: dict,
+        lightkube_client: lightkube.Client,
+        context_callable: Optional[Callable] = None,
+    ):
         super().__init__(charm=charm, name=name)
         self._charm = charm
         self._resource_templates = resource_templates
@@ -23,14 +39,16 @@ class KubernetesComponent(Component):
         self._krh_labels = krh_labels
         self._lightkube_client = lightkube_client
         if context_callable is None:
-            context_callable = lambda: {}
+            context_callable = lambda: {}  # noqa: E731
         self._context_callable = context_callable
 
     def _configure_unit(self, event):
+        """Executes everything this Component should do for every Unit."""
         # no per-unit actions needed
         pass
 
     def _configure_app_leader(self, event):
+        """Execute everything this Component should do at the Application level for leaders."""
         try:
             krh = self._get_kubernetes_resource_handler()
             krh.apply()
@@ -39,6 +57,7 @@ class KubernetesComponent(Component):
             raise GenericCharmRuntimeError("Failed to create Kubernetes resources") from e
 
     def _configure_app_non_leader(self, event):
+        """Execute everything this Component should do at the Application level for non-Leaders."""
         # no non-leader application actions needed
         pass
 

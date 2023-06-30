@@ -1,7 +1,14 @@
-from __future__ import annotations  # To enable type hinting a method in a class with its own class
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""A collection of ComponentGraphItems that keeps their order."""
+
+from __future__ import (
+    annotations,  # To enable type hinting a method in a class with its own class
+)
+
 from typing import Iterable, List, Optional
 
-from ops import StatusBase, BoundEvent
+from ops import BoundEvent, StatusBase
 
 from .component import Component
 from .component_graph_item import ComponentGraphItem
@@ -9,6 +16,8 @@ from .multistatus import Prioritiser
 
 
 class ComponentGraph:
+    """A collection of ComponentGraphItems that keeps their order."""
+
     def __init__(self):
         self.component_items: dict[str, ComponentGraphItem] = {}
         self.status_prioritiser = Prioritiser()
@@ -68,7 +77,9 @@ class ComponentGraph:
         return self.status_prioritiser.highest()
 
     def summarise(self):
-        """Placeholder - definitely need something to help writing/debugging
-        charms.  Not sure exactly what to put here.
+        """Placeholder.
+
+        TODO: definitely need something to help writing/debugging
+         charms.  Not sure exactly what to put here.
         """
         raise NotImplementedError()

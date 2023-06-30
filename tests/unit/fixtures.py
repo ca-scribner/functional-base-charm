@@ -1,11 +1,17 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 import pytest
-from ops import ActiveStatus, StatusBase, WaitingStatus, BlockedStatus, CharmBase
+from ops import ActiveStatus, BlockedStatus, CharmBase, StatusBase, WaitingStatus
 from ops.pebble import Layer
 from ops.testing import Harness
 
 from functional_base_charm.component import Component
 from functional_base_charm.component_graph_item import ComponentGraphItem
-from functional_base_charm.pebble_component import PebbleComponent, PebbleServiceComponent
+from functional_base_charm.pebble_component import (
+    PebbleComponent,
+    PebbleServiceComponent,
+)
 
 COMPONENT_NAME = "component"
 
@@ -40,6 +46,7 @@ class MinimallyExtendedComponent(Component):
 
 class MinimallyBlockedComponent(MinimallyExtendedComponent):
     """A minimal Component that defaults to being Blocked."""
+
     @property
     def status(self) -> StatusBase:
         """Returns ActiveStatus if self._completed_work is not Falsey, else WaitingStatus."""
@@ -55,51 +62,60 @@ class MinimalPebbleComponent(PebbleComponent):
 
 class MinimalPebbleServiceComponent(PebbleServiceComponent):
     def get_layer(self) -> Layer:
-        return Layer({
-            "summary": "test-container-layer",
-            "services": {
-                self.service_name: {
-                    "override": "replace",
-                    "summary": "test-service",
-                    "startup": "enabled",
-                }
+        return Layer(
+            {
+                "summary": "test-container-layer",
+                "services": {
+                    self.service_name: {
+                        "override": "replace",
+                        "summary": "test-service",
+                        "startup": "enabled",
+                    }
+                },
             }
-        })
+        )
 
 
 @pytest.fixture()
 def component_active_factory():
     """Returns a factory for Components that will be Active."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> Component:
         component = MinimallyExtendedComponent(charm=harness.framework, name=name)
         # "execute" the Component, making it now be Active because work has been done
         component.configure_charm("mock event")
         return component
+
     return factory
 
 
 @pytest.fixture()
 def component_inactive_factory(harness):
     """Returns a factory for Components that will not be Active."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> Component:
         return MinimallyExtendedComponent(charm=harness.framework, name=name)
+
     return factory
 
 
 @pytest.fixture()
 def component_graph_item_factory(harness):
     """Returns a factory for a ComponentGraphItem with a very minimal Component."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.framework, name=name),
             name=name,
         )
+
     return factory
 
 
 @pytest.fixture()
 def component_graph_item_active_factory(component_active_factory, harness):
     """Returns a factory for a ComponentGraphItem with a very minimal Component that is Active."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         cgi = ComponentGraphItem(
             component=component_active_factory(harness=harness, name=name),
@@ -107,30 +123,35 @@ def component_graph_item_active_factory(component_active_factory, harness):
         )
         cgi.executed = True
         return cgi
+
     return factory
 
 
 @pytest.fixture()
 def component_graph_item_with_depends_not_active_factory(component_graph_item_factory, harness):
     """Returns a factory for a ComponentGraphItem that depends on another that is not Active."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.framework, name=name),
             name=name,
-            depends_on=[component_graph_item_factory(harness=harness, name="dependency")]
+            depends_on=[component_graph_item_factory(harness=harness, name="dependency")],
         )
+
     return factory
 
 
 @pytest.fixture()
 def component_graph_item_with_depends_active_factory(component_graph_item_active_factory, harness):
     """Returns a factory for a ComponentGraphItem that depends on another that is Active."""
+
     def factory(harness=harness, name=COMPONENT_NAME) -> ComponentGraphItem:
         return ComponentGraphItem(
             component=MinimallyExtendedComponent(charm=harness.framework, name=name),
             name=name,
-            depends_on=[component_graph_item_active_factory(harness=harness, name="dependency")]
+            depends_on=[component_graph_item_active_factory(harness=harness, name="dependency")],
         )
+
     return factory
 
 

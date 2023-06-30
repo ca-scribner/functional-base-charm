@@ -1,4 +1,11 @@
-from __future__ import annotations  # To enable type hinting a method in a class with its own class
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""A wrapper around a Component for use in a ComponentGraph."""
+
+from __future__ import (
+    annotations,  # To enable type hinting a method in a class with its own class
+)
+
 from typing import List, Optional
 
 from ops import ActiveStatus, MaintenanceStatus, StatusBase
@@ -10,10 +17,10 @@ class ComponentGraphItem:
     """A wrapper around a Component for use in a ComponentGraph."""
 
     def __init__(
-            self,
-            component: Component,
-            name: str,
-            depends_on: Optional[List[ComponentGraphItem]] = None,
+        self,
+        component: Component,
+        name: str,
+        depends_on: Optional[List[ComponentGraphItem]] = None,
     ):
         self.component = component
         self.name = name
@@ -75,10 +82,14 @@ class ComponentGraphItem:
             return MaintenanceStatus(f"Execution pending - waiting on {message_suffix}.")
 
         if not self.executed:
-            return MaintenanceStatus(f"Execution pending.")
+            return MaintenanceStatus("Execution pending.")
 
         return self.component.status
 
     def _inactive_prerequisites(self) -> List[ComponentGraphItem]:
         """Returns a list of any depends_on ComponentGraphItems that are not yet ActiveStatus."""
-        return [prerequisite for prerequisite in self.depends_on if not isinstance(prerequisite.status, ActiveStatus)]
+        return [
+            prerequisite
+            for prerequisite in self.depends_on
+            if not isinstance(prerequisite.status, ActiveStatus)
+        ]

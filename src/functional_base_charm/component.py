@@ -1,7 +1,11 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""Abstract class defining the API needed for an atomic piece of work that a charm does."""
+
 from abc import ABC, abstractmethod
 from typing import List
 
-from ops import ActiveStatus, CharmBase, Object, StatusBase, BoundEvent
+from ops import ActiveStatus, BoundEvent, CharmBase, Object, StatusBase
 
 
 class Component(Object, ABC):
@@ -10,6 +14,7 @@ class Component(Object, ABC):
     This is intended to be extended for different types of operations, such as managing Pebble
     containers or relation libraries.
     """
+
     def __init__(self, charm: CharmBase, name: str):
         """Instantiate a Component.
 
@@ -21,10 +26,7 @@ class Component(Object, ABC):
             name: Unique name of this instance of the class.  This is used as the ops.Object key
                   argument, as well as for some status/debug printing.
         """
-        super().__init__(
-            parent=charm,
-            key=name
-        )
+        super().__init__(parent=charm, key=name)
         self.name = name  # Will be the same as self.handle.key
         self._charm = charm
         self._events_to_observe: List[BoundEvent] = []
@@ -41,7 +43,7 @@ class Component(Object, ABC):
 
     @property
     def ready(self) -> bool:
-        """Returns boolean indicating if Component is ready (Active)."""
+        """Returns boolean indicating if Component is ready (Active)."""  # noqa: D402
         return isinstance(self.status, ActiveStatus)
 
     @property
@@ -49,7 +51,7 @@ class Component(Object, ABC):
         """Returns boolean indicating if Component is ready for execution.
 
         Extend this method with custom logic if this Component has validation to run before it can
-        be executed.  For example, a PebbleContainer can check wither the container is ready.
+        be executed.  For example, a PebbleContainer can check weather the container is ready.
         """
         return True
 
@@ -103,5 +105,3 @@ class Component(Object, ABC):
         Override this method to implement the logic that establishes your Component
         status (eg: if I have data from my relation, I am Active)
         """
-
-

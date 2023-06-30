@@ -1,13 +1,17 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""A reusable reconcile loop for Charms."""
 import logging
 
-from .component_graph import ComponentGraph
-from ops import EventBase, StatusBase, CharmBase, Object
+from ops import CharmBase, EventBase, Object, StatusBase
 
+from .component_graph import ComponentGraph
 
 logger = logging.getLogger(__name__)
 
 
 class CharmReconciler(Object):
+    """A reusable reconcile loop for Charms."""
 
     def __init__(self, charm: CharmBase, component_graph: ComponentGraph):
         super().__init__(parent=charm, key=None)
@@ -23,7 +27,9 @@ class CharmReconciler(Object):
 
         # TODO: Think this through again.  Look ok still?
         for component_item in self.component_graph.yield_executable_component_items():
-            logger.info(f"Executing component_item.component.configure_charm for '{component_item.name}'")
+            logger.info(
+                f"Executing component_item.component.configure_charm for '{component_item.name}'"
+            )
 
             component_item.component.configure_charm(event)
             # TODO: If this component executes but does not go to ready, is there something we
@@ -33,7 +39,7 @@ class CharmReconciler(Object):
 
         # TODO: Because on.commit didn't work for the Prioritiser, we add a call to Prioritiser
         #  here.  This should be improved on in future.
-        logger.info(f"execute_components execution loop complete.")
+        logger.info("execute_components execution loop complete.")
         status = self.component_graph.status_prioritiser.highest()
         logger.info(f"Got status {status} from Prioritiser - updating unit status")
         self._charm.unit.status = status

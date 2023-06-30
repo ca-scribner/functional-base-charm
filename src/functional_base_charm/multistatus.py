@@ -1,14 +1,16 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 # From prototype for stateless multi-status handling
 # https://github.com/benhoyt/test-charms/blob/statustest-stateless/statustest/src/multistatus.py
 """Status prioritiser."""
 
 import logging
 import typing
-from typing import Tuple, List
+from typing import List, Tuple
 
 import ops
-from ops import Framework, Unit, EventBase
-
+from ops import EventBase, Framework, Unit
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +47,13 @@ class Prioritiser:
         return ops.StatusBase.from_name(status.name, f"[{component}] {status.message}")
 
     def install(self, framework: Framework, unit: Unit):
-        # TODO: This doesn't work because framework.observe's observer parameter (the last one)
-        #  only accepts methods, not functions?  For now, use the hack of implementing this
-        #  directly in the charm main.
+        """Installs this instance onto the framework events required.
+
+        TODO: This doesn't work because framework.observe's observer parameter (the last one)
+         only accepts methods, not functions?  For now, use the hack of implementing this
+         directly in the charm main.
+        """
+
         def update_unit_status(event: EventBase):
             logger.info("Executing Prioritizer.update_unit_status")
             unit.status = self.highest()
@@ -56,7 +62,6 @@ class Prioritiser:
 
     def _on_commit(self, event):
         self.unit.status = self.prioritiser.highest()
-
 
     def all(self) -> List[Tuple[str, ops.StatusBase]]:
         """Return list of (component_name, status) tuples for all components.

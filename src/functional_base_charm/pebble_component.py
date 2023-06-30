@@ -1,21 +1,25 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+"""Reusable Components for Pebble containers."""
 import logging
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, Optional, Callable
+from typing import Callable, List, Optional, Union
 
 import jinja2
-from ops import CharmBase, StatusBase, WaitingStatus, ActiveStatus
+from ops import ActiveStatus, CharmBase, StatusBase, WaitingStatus
 from ops.pebble import Layer, ServiceInfo
 
 from functional_base_charm.component import Component
-
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ContainerFileTemplate:
+    """Dataclass for defining templates that should be rendered as files in Pebble Containers."""
+
     source_template_path: Union[Path, str]
     destination_path: Union[Path, str]
     context_function: Optional[Union[Callable, dict]] = None
@@ -29,20 +33,26 @@ class ContainerFileTemplate:
             value = Path(value)
         if name == "context_function":
             if value is None:
-                value = lambda: {}
+                value = lambda: {}  # noqa: E731
             elif not callable(value):
-                value = lambda: value
+                value = lambda: value  # noqa: E731
 
         super().__setattr__(name, value)
 
 
 class PebbleComponent(Component):
     """Wraps a non-service Pebble container."""
-    def __init__(self, charm: CharmBase, container_name: str, files_to_push: Optional[List[ContainerFileTemplate]] = None):
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        container_name: str,
+        files_to_push: Optional[List[ContainerFileTemplate]] = None,
+    ):
         """Instantiate the PebbleComponent.
 
         Args:
-            charm:
+            charm: the charm using this PebbleComponent
             container_name: Name of this container.  Note that this name is also used as the
                             parent object's Component.name parameter.
             files_to_push: Optional List of ContainerFile objects that define templates to be
@@ -92,12 +102,12 @@ class PebbleComponent(Component):
                 user=container_file_template.user,
                 group=container_file_template.group,
                 permissions=container_file_template.permissions,
-                make_dirs=True
+                make_dirs=True,
             )
-
 
     @property
     def status(self) -> StatusBase:
+        """Returns the status of this Component."""
         if not self.pebble_ready:
             return WaitingStatus("Waiting for Pebble to be ready.")
 
@@ -106,11 +116,13 @@ class PebbleComponent(Component):
 
 class PebbleServiceComponent(PebbleComponent):
     """Wraps a Pebble container that implements one or more services."""
+
     def __init__(self, *args, service_name: str, **kwargs):
         super().__init__(*args, **kwargs)
         self.service_name = service_name
 
     def _configure_unit(self, event):
+        """Executes everything this Component should do for every Unit."""
         # TODO: Need to call super()._configure_unit()?
         super()._configure_unit(event)
         # TODO: Checks for if we are the leader/there is a leader?  or skip that?
@@ -125,6 +137,7 @@ class PebbleServiceComponent(PebbleComponent):
         self._update_layer()
 
     def _update_layer(self):
+        """Updates the Pebble layer for this component, re-planning the services afterward."""
         container = self._charm.unit.get_container(self.container_name)
         new_layer = self.get_layer()
 
@@ -151,7 +164,10 @@ class PebbleServiceComponent(PebbleComponent):
     def get_services_not_active(self) -> List[ServiceInfo]:
         """Returns a list of Pebble services that are defined in get_layer but not active."""
         # Get the expected services by inspecting our layer specification
-        services_expected = [ServiceInfo(service_name, "disabled", "inactive") for service_name in self.get_layer().services.keys()]
+        services_expected = [
+            ServiceInfo(service_name, "disabled", "inactive")
+            for service_name in self.get_layer().services.keys()
+        ]
         if not self.pebble_ready:
             return services_expected
 
@@ -159,8 +175,12 @@ class PebbleServiceComponent(PebbleComponent):
         services = container.get_services()
 
         # Get any services that should be active, but are not in the container at all
-        services_not_found = [service for service in services_expected if service.name not in services.keys()]
-        services_not_active = [service for service in services.values() if not service.is_running()]
+        services_not_found = [
+            service for service in services_expected if service.name not in services.keys()
+        ]
+        services_not_active = [
+            service for service in services.values() if not service.is_running()
+        ]
 
         services_not_ready = services_not_found + services_not_active
 
@@ -180,7 +200,8 @@ class PebbleServiceComponent(PebbleComponent):
             service_names = ", ".join([service.name for service in services_not_ready])
             return WaitingStatus(
                 f"Waiting for Pebble services ({service_names}).  If this persists, it could be a"
-                f" blocking configuration error.")
+                f" blocking configuration error."
+            )
         return ActiveStatus()
 
 
