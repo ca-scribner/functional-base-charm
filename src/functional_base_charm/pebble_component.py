@@ -81,15 +81,6 @@ class PebbleComponent(Component):
         """Execute the given command in the container managed by this Component."""
         raise NotImplementedError()
 
-    def _configure_unit(self, event):
-        pass
-
-    def _configure_app_leader(self, event):
-        pass
-
-    def _configure_app_non_leader(self, event):
-        pass
-
     def _push_files_to_container(self):
         """Renders and pushes the files defined in self._files_to_push into the container."""
         container = self._charm.unit.get_container(self.container_name)

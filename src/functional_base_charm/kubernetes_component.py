@@ -42,11 +42,6 @@ class KubernetesComponent(Component):
             context_callable = lambda: {}  # noqa: E731
         self._context_callable = context_callable
 
-    def _configure_unit(self, event):
-        """Executes everything this Component should do for every Unit."""
-        # no per-unit actions needed
-        pass
-
     def _configure_app_leader(self, event):
         """Execute everything this Component should do at the Application level for leaders."""
         try:
@@ -55,11 +50,6 @@ class KubernetesComponent(Component):
         except ApiError as e:
             # TODO: Blocked?
             raise GenericCharmRuntimeError("Failed to create Kubernetes resources") from e
-
-    def _configure_app_non_leader(self, event):
-        """Execute everything this Component should do at the Application level for non-Leaders."""
-        # no non-leader application actions needed
-        pass
 
     def _get_kubernetes_resource_handler(self) -> KubernetesResourceHandler:
         """Returns a KubernetesResourceHandler for this class."""
