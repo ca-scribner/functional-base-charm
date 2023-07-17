@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 """A reusable reconcile loop for Charms."""
 import logging
+from typing import Optional, List
 
 from ops import CharmBase, EventBase, Object, StatusBase
 
@@ -13,8 +14,22 @@ logger = logging.getLogger(__name__)
 class CharmReconciler(Object):
     """A reusable reconcile loop for Charms."""
 
-    def __init__(self, charm: CharmBase, component_graph: ComponentGraph):
+    def __init__(self, charm: CharmBase, component_graph: Optional[ComponentGraph] = None):
+        """A reusable reconcile loop for Charms.
+
+        TODO: Do we really need to pass `charm` here?  We barely use it.  I think we need it (or
+         really, the framework) to
+
+        Args:
+            charm: a CharmBase object to operate from this CharmReconciler
+            component_graph: (optional) a ComponentGraph that is used to define the execution order
+                             of Components.  If None, an empty ComponentGraph will be created.
+        """
         super().__init__(parent=charm, key=None)
+
+        if component_graph is None:
+            component_graph = ComponentGraph()
+
         self._charm = charm
         self.component_graph = component_graph
 
