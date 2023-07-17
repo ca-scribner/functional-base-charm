@@ -83,7 +83,8 @@ class Component(Object, ABC):
     def _configure_unit(self, event):
         """Executes everything this Component should do for every Unit.
 
-        Can be overridden to implement anything this Component should do for every unit in the charm.
+        Can be overridden to implement anything this Component should do for every unit in the
+        charm.
         """
         pass
 
