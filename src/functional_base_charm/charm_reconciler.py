@@ -6,7 +6,9 @@ from typing import Optional, List
 
 from ops import CharmBase, EventBase, Object, StatusBase
 
+from .component import Component
 from .component_graph import ComponentGraph
+from .component_graph_item import ComponentGraphItem
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,21 @@ class CharmReconciler(Object):
             component_graph = ComponentGraph()
 
         self._charm = charm
-        self.component_graph = component_graph
+        self._component_graph = component_graph
+
+    def add(
+        self,
+        component: Component,
+        depends_on: Optional[List[ComponentGraphItem]] = None,
+    ) -> ComponentGraphItem:
+        """Add a component to the graph, returning a ComponentGraphItem for this Component.
+
+        Args:
+            component: the Component to add to this execution graph
+            depends_on: the list of registered ComponentGraphItems that this Component depends on
+                        being Active before it should run.
+        """
+        return self._component_graph.add(component, depends_on)
 
     def execute_components(self, event: EventBase):
         """Executes all components that are ready for execution, ordered by their dependencies.
@@ -41,7 +57,7 @@ class CharmReconciler(Object):
         logger.info(f"Starting `execute_components` for event '{event.handle}'")
 
         # TODO: Think this through again.  Look ok still?
-        for component_item in self.component_graph.yield_executable_component_items():
+        for component_item in self._component_graph.yield_executable_component_items():
             logger.info(
                 f"Executing component_item.component.configure_charm for '{component_item.name}'"
             )
@@ -55,7 +71,7 @@ class CharmReconciler(Object):
         # TODO: Because on.commit didn't work for the Prioritiser, we add a call to Prioritiser
         #  here.  This should be improved on in future.
         logger.info("execute_components execution loop complete.")
-        status = self.component_graph.status_prioritiser.highest()
+        status = self._component_graph.status_prioritiser.highest()
         logger.info(f"Got status {status} from Prioritiser - updating unit status")
         self._charm.unit.status = status
 
@@ -71,7 +87,7 @@ class CharmReconciler(Object):
         charm.framework.observe(charm.on.config_changed, self.execute_components)
 
         # Install any custom events our component_graph needs
-        additional_events = self.component_graph.get_events_to_observe()
+        additional_events = self._component_graph.get_events_to_observe()
         for event in additional_events:
             charm.framework.observe(event, self.execute_components)
 
@@ -93,3 +109,4 @@ class CharmReconciler(Object):
         Prioritiser class.  This status needs to be passed along somehow to the
         charm's overall status.
         """
+        raise NotImplementedError()
