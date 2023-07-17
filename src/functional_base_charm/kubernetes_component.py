@@ -60,7 +60,7 @@ class KubernetesComponent(Component):
             context=self._context_callable(),
             lightkube_client=self._lightkube_client,
             labels=self._krh_labels,
-            child_resource_types=self._krh_child_resource_types,
+            resource_types=self._krh_child_resource_types,
         )
         load_in_cluster_generic_resources(k8s_resource_handler.lightkube_client)
         return k8s_resource_handler
@@ -81,6 +81,11 @@ class KubernetesComponent(Component):
             desired_resources, existing_resources, hasher=_hash_lightkube_resource
         )
         return missing_resources
+
+    def remove(self, event):
+        """Removes all deployed resources."""
+        krh = self._get_kubernetes_resource_handler()
+        krh.delete()
 
     @property
     def status(self) -> StatusBase:

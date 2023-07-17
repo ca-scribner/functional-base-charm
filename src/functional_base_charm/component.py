@@ -60,6 +60,10 @@ class Component(Object, ABC):
         """
         return True
 
+    def remove(self, event):
+        """Removes everything this Component should when handling a `remove` event."""
+        pass
+
     @property
     def events_to_observe(self) -> List[BoundEvent]:
         """Returns the list of events this Component wants to observe."""
