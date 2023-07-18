@@ -1,7 +1,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# TODO.  Just storing some stuff here for now
 from unittest.mock import patch
 
 from fixtures import MinimallyExtendedComponent, harness  # noqa F401

@@ -2,7 +2,7 @@
 # See LICENSE file for licensing details.
 """A reusable reconcile loop for Charms."""
 import logging
-from typing import Optional, List
+from typing import List, Optional
 
 from ops import CharmBase, EventBase, Object, StatusBase
 
@@ -110,7 +110,9 @@ class CharmReconciler(Object):
                 component_item.component.remove(event)
                 logger.info(f"Successfully removed component {component_item.name}")
             except Exception as err:
-                logger.warning(f"Failed to remove component {component_item.name} - caught error {err}")
+                logger.warning(
+                    f"Failed to remove component {component_item.name} - caught error {err}"
+                )
 
     def status(self) -> StatusBase:
         """Returns a status representing the the entire charm execution.
