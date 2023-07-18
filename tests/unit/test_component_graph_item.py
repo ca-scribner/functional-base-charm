@@ -135,7 +135,6 @@ class TestInactivePrerequisites:
         """Tests inactive_prerequisites when CGI depends_on Active and not Active Components."""
         cgi = ComponentGraphItem(
             component=component_inactive_factory(),
-            name=COMPONENT_NAME,
             depends_on=[
                 component_graph_item_active_factory(name="dependency1"),
                 component_graph_item_factory(name="dependency2"),

@@ -42,11 +42,6 @@ class KubernetesComponent(Component):
             context_callable = lambda: {}  # noqa: E731
         self._context_callable = context_callable
 
-    def _configure_unit(self, event):
-        """Executes everything this Component should do for every Unit."""
-        # no per-unit actions needed
-        pass
-
     def _configure_app_leader(self, event):
         """Execute everything this Component should do at the Application level for leaders."""
         try:
@@ -55,11 +50,6 @@ class KubernetesComponent(Component):
         except ApiError as e:
             # TODO: Blocked?
             raise GenericCharmRuntimeError("Failed to create Kubernetes resources") from e
-
-    def _configure_app_non_leader(self, event):
-        """Execute everything this Component should do at the Application level for non-Leaders."""
-        # no non-leader application actions needed
-        pass
 
     def _get_kubernetes_resource_handler(self) -> KubernetesResourceHandler:
         """Returns a KubernetesResourceHandler for this class."""
@@ -70,7 +60,7 @@ class KubernetesComponent(Component):
             context=self._context_callable(),
             lightkube_client=self._lightkube_client,
             labels=self._krh_labels,
-            child_resource_types=self._krh_child_resource_types,
+            resource_types=self._krh_child_resource_types,
         )
         load_in_cluster_generic_resources(k8s_resource_handler.lightkube_client)
         return k8s_resource_handler
@@ -92,6 +82,11 @@ class KubernetesComponent(Component):
         )
         return missing_resources
 
+    def remove(self, event):
+        """Removes all deployed resources."""
+        krh = self._get_kubernetes_resource_handler()
+        krh.delete()
+
     @property
     def status(self) -> StatusBase:
         """Returns the status of this Component based on whether its desired resources exist.
@@ -99,6 +94,11 @@ class KubernetesComponent(Component):
         Todo: This could use improvements on validation, and some of the logic could be moved into
         the KubernetesResourceHandler class.
         """
+        if not self._charm.unit.is_leader():
+            # We have no work to do, so we are always active.
+            # Ideally, there would be a "no status" option.  Maybe Unknown?
+            return ActiveStatus()
+
         # TODO: Add better validation
         missing_resources = self._get_missing_kubernetes_resources()
 

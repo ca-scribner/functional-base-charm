@@ -35,8 +35,11 @@ class Component(Object, ABC):
     def configure_charm(self, event):
         """Public API to get this Component to do whatever it should with an Event.
 
-        Generally should be reusable for most use cases.  Ideally, the _private
-        methods are where subclasses should modify behaviour.
+        Generally, this should not need modification.  Instead, implement the Component's logic in
+        one or more of:
+        * _configure_unit: for work executed on every unit in an application
+        * _configure_app_leader: for work executed on only the leader of an application
+        * _configure_app_non_leader: for work executed on only the non-leaders of an application
         """
         self._configure_unit(event)
         self._configure_app(event)
@@ -51,51 +54,58 @@ class Component(Object, ABC):
         """Returns boolean indicating if Component is ready for execution.
 
         Extend this method with custom logic if this Component has validation to run before it can
-        be executed.  For example, a PebbleContainer can check weather the container is ready.
+        be executed.  For example:
+        * a PebbleContainer can check whether the container is ready
+        * a Component that requires leadership can check self._charm.unit.is_leader()
         """
         return True
 
+    def remove(self, event):
+        """Removes everything this Component should when handling a `remove` event."""
+        pass
+
     @property
     def events_to_observe(self) -> List[BoundEvent]:
-        """Returns the list of events this Component wants to observe.
-
-        TODO: Would this be better returning actual BoundEvents instead of their names?
-        """
+        """Returns the list of events this Component wants to observe."""
         return self._events_to_observe
 
     def _configure_app(self, event):
         """Execute everything this Component should do at the Application level.
 
-        Generally should be reusable for most use cases.  Ideally, override
-        _configure_app_leader and _configure_app_non_leader instead.
+        Generally, this should not need modification.  Instead, implement the Component's logic in
+        one or more of:
+        * _configure_unit: for work executed on every unit in an application
+        * _configure_app_leader: for work executed on only the leader of an application
+        * _configure_app_non_leader: for work executed on only the non-leaders of an application
         """
-        self._configure_app_leader(event)
-        self._configure_app_non_leader(event)
+        if self._charm.unit.is_leader():
+            self._configure_app_leader(event)
+        else:
+            self._configure_app_non_leader(event)
 
     # Methods that should be overridden when creating a Component subclass
-    @abstractmethod
     def _configure_unit(self, event):
         """Executes everything this Component should do for every Unit.
 
-        Override this method to implement anything this Component should do for
-        every unit in the charm.
+        Can be overridden to implement anything this Component should do for every unit in the
+        charm.
         """
+        pass
 
-    @abstractmethod
     def _configure_app_leader(self, event):
         """Execute everything this Component should do at the Application level for leaders.
 
-        Override this method to implement anything this Component should do for
-        the leader unit.
+        Can be overridden to implement anything this Component should do for the leader unit.
         """
+        pass
 
-    @abstractmethod
     def _configure_app_non_leader(self, event):
         """Execute everything this Component should do at the Application level for non-Leaders.
 
-        Override this method to implement anything this Component should do for
-        every unit that is not the leader.
+        Can be overridden to implement anything this Component should do for every unit that is
+        not the leader.
         """
+        pass
 
     @property
     @abstractmethod

@@ -20,7 +20,6 @@ class TestAdd:
         name = "component1"
         cgi1 = cg.add(
             component=MinimallyExtendedComponent(charm=harness, name=name),
-            name=name,
             depends_on=[],
         )
 
@@ -29,14 +28,12 @@ class TestAdd:
         name = "component2"
         cgi2 = cg.add(
             component=MinimallyExtendedComponent(charm=harness, name=name),
-            name=name,
             depends_on=[cgi1],
         )
 
         name = "component3"
         cgi3 = cg.add(
             component=MinimallyExtendedComponent(charm=harness, name=name),
-            name=name,
             depends_on=[cgi1, cgi2],
         )
 
@@ -45,12 +42,17 @@ class TestAdd:
 
     def test_add_existing_item_raises(self, harness):  # noqa: F811
         """Tests that adding two Components of the same name raises an Exception."""
-        name = "component"
+
+        class MockComponent:
+            # Use a mocked Component rather than a real Component because you cannot register two
+            # framework Objects of the same name to the same framework.  If we try to create two
+            # Components here of the same name, we will get a RuntimeError from the harness.
+            name = "component"
 
         cg = ComponentGraph()
-        cg.add(component=MinimallyExtendedComponent(harness, name), name=name)
+        cg.add(component=MockComponent())
         with pytest.raises(ValueError):
-            cg.add(component=MinimallyExtendedComponent(harness, name + "1"), name=name)
+            cg.add(component=MockComponent())
 
 
 class TestGetExecutableComponentItems:
@@ -63,15 +65,13 @@ class TestGetExecutableComponentItems:
     ):
         cg = ComponentGraph()
         name = "component1"
-        cgi1 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[]
-        )
+        cgi1 = cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[])
 
         name = "component2"
-        cg.add(component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1])
+        cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[cgi1])
 
         name = "component3"
-        cg.add(component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1])
+        cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[cgi1])
 
         # Assert that we have one cgi ready for execution (cgi1)
         executable_cgis = cg.get_executable_component_items()
@@ -98,8 +98,7 @@ class TestStatus:
         # Add a Component that is Active
         name = "cgi-active"
         cgi_active = cg.add(
-            component=MinimallyExtendedComponent(harness, name),
-            name=name,
+            component=MinimallyExtendedComponent(harness.charm, name),
         )
         # "execute" it to make it active
         cgi_active.executed = True
@@ -108,16 +107,14 @@ class TestStatus:
         # Add a Component that is Blocked
         name = "cgi-blocked"
         cgi_blocked = cg.add(
-            component=MinimallyBlockedComponent(harness, name),
-            name=name,
+            component=MinimallyBlockedComponent(harness.charm, name),
         )
         cgi_blocked.executed = True
 
         # Add a Component that is Waiting
         name = "cgi-waiting"
         cgi_waiting = cg.add(
-            component=MinimallyExtendedComponent(harness, name),
-            name=name,
+            component=MinimallyExtendedComponent(harness.charm, name),
         )
         cgi_waiting.executed = True
 
@@ -135,9 +132,7 @@ class TestYieldExecutableComponentItems:
         """Tests that the generator does not yield anything if there is nothing executable."""
         cg = ComponentGraph()
         name = "component1"
-        cgi1 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[]
-        )
+        cgi1 = cg.add(component=MinimallyExtendedComponent(harness, name), depends_on=[])
         cgi1.executed = True
 
         with pytest.raises(StopIteration):
@@ -147,23 +142,17 @@ class TestYieldExecutableComponentItems:
         """An end-to-end style test of ComponentGraph.yield_executable_component_items()."""
         cg = ComponentGraph()
         name = "component1"
-        cgi1 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[]
-        )
+        cgi1 = cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[])
 
         name = "component2"
-        cgi2 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1]
-        )
+        cgi2 = cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[cgi1])
 
         name = "component3"
-        cgi3 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi1]
-        )
+        cgi3 = cg.add(component=MinimallyExtendedComponent(harness.charm, name), depends_on=[cgi1])
 
         name = "component4"
         cgi4 = cg.add(
-            component=MinimallyExtendedComponent(harness, name), name=name, depends_on=[cgi2, cgi3]
+            component=MinimallyExtendedComponent(harness.charm, name), depends_on=[cgi2, cgi3]
         )
 
         cgi_generator = cg.yield_executable_component_items()
@@ -212,12 +201,12 @@ class TestEventsToObserve:
         component1 = MinimallyExtendedComponent(harness, "test1")
         events1 = ["event1", "event1b"]
         component1._events_to_observe = events1
-        cg.add(component=component1, name=component1.name)
+        cg.add(component=component1)
 
         component2 = MinimallyExtendedComponent(harness, "test2")
         events2 = ["event2"]
         component2._events_to_observe = events2
-        cg.add(component=component2, name=component2.name)
+        cg.add(component=component2)
 
         expected_events = events1 + events2
         assert cg.get_events_to_observe() == expected_events

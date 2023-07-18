@@ -25,12 +25,18 @@ class ComponentGraph:
     def add(
         self,
         component: Component,
-        name: str,
         depends_on: Optional[List[ComponentGraphItem]] = None,
     ) -> ComponentGraphItem:
-        """Add a component to the graph, returning a ComponentGraphItem for this Component."""
+        """Add a component to the graph, returning a ComponentGraphItem for this Component.
+
+        Args:
+            component: the Component to add to this execution graph
+            depends_on: the list of registered ComponentGraphItems that this Component depends on
+                        being Active before it should run.
+        """
         # TODO: It feels easier to pass Component's in `depends_on`, but then harder for us to
         #  process them here (we identify components by their name).
+        name = component.name
         if name in self.component_items:
             raise ValueError(
                 f"Cannot add component {name} - component named {name} already exists."
@@ -38,9 +44,7 @@ class ComponentGraph:
         # TODO: Make an actual graph of this
         #  or is this not needed?  If everything knows its dependencies and only says it is ready
         #  if they're satisfied, that might be enough.
-        self.component_items[name] = ComponentGraphItem(
-            component=component, name=name, depends_on=depends_on
-        )
+        self.component_items[name] = ComponentGraphItem(component=component, depends_on=depends_on)
 
         self.status_prioritiser.add(name, lambda: self.component_items[name].status)
 
