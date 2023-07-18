@@ -82,6 +82,7 @@ class CharmReconciler(Object):
         but would be helpful if a standalone class.  Would include handling
         config-changed, update-status, etc.
         """
+        # Executing components
         # Install standard events
         charm.framework.observe(charm.on.install, self.execute_components)
         charm.framework.observe(charm.on.config_changed, self.execute_components)
@@ -91,10 +92,25 @@ class CharmReconciler(Object):
         for event in additional_events:
             charm.framework.observe(event, self.execute_components)
 
-        # Install our status updater
+        # Removing components
+        charm.framework.observe(charm.on.remove, self.remove_components)
+
+        # Updating status
         # TODO: Does this implicitly make an update_status?
         # TODO: Disabled because prioritizer's install doesn't work.  See note on that method
         # self.component_graph.status_prioritiser.install(charm.framework, charm.unit)
+
+    def remove_components(self, event: EventBase):
+        """Runs Component.remove() for each component.
+
+        Note that the order in which Components are removed is not guaranteed.
+        """
+        for component_item in self._component_graph.component_items.values():
+            try:
+                component_item.component.remove(event)
+                logger.info(f"Successfully removed component {component_item.name}")
+            except Exception as err:
+                logger.warning(f"Failed to remove component {component_item.name} - caught error {err}")
 
     def status(self) -> StatusBase:
         """Returns a status representing the the entire charm execution.

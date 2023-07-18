@@ -5,7 +5,7 @@ from fixtures import (  # noqa: F401
     harness,
 )
 
-# TODO: Add tests for execute_components, install
+# TODO: Add tests for execute_components, install, remove_components
 
 
 class TestBasicFunction:
